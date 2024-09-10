@@ -1,0 +1,355 @@
+<index.html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShoppyAI - AI Chatbot</title>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f0f8ff;
+        height: 100%;
+    }
+    .chat-container {
+        max-width: 400px;
+        margin: 20px auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 40px);
+        background-color: white;
+    }
+    .chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #0066cc;
+        color: white;
+        padding: 10px;
+        font-weight: bold;
+    }
+    .robot-logo {
+        margin-right: 10px;
+    }
+    .chat-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 10px;
+    }
+    .message {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        border-radius: 20px;
+        max-width: 80%;
+    }
+    .bot-message {
+        background-color: #e6f2ff;
+        align-self: flex-start;
+    }
+    .user-message {
+        background-color: #0066cc;
+        color: white;
+        align-self: flex-end;
+        margin-left: auto;
+    }
+    .options-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    .option-button {
+        background-color: #e6f2ff;
+        border: 1px solid #0066cc;
+        color: #0066cc;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .option-button:hover {
+        background-color: #0066cc;
+        color: white;
+    }
+    .whatsapp-button {
+        background-color: #25D366;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    .loading-dots {
+        display: inline-block;
+    }
+    .loading-dots:after {
+        content: '';
+        animation: dots 1.5s steps(3, end) infinite;
+    }
+    @keyframes dots {
+        0%, 33% {
+            content: '.';
+        }
+        66% {
+            content: '..';
+        }
+        100% {
+            content: '...';
+        }
+    }
+    @keyframes blink {
+        0%, 100% { transform: scaleY(1); }
+        50% { transform: scaleY(0.1); }
+    }
+    @keyframes think {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+    }
+    @keyframes smile {
+        0%, 100% { d: path('M 30 60 Q 50 70 70 60'); }
+        50% { d: path('M 30 60 Q 50 75 70 60'); }
+    }
+    .robot-eye {
+        animation: blink 2s infinite;
+    }
+    .robot-antenna {
+        animation: think 1s infinite;
+    }
+    .robot-smile {
+        animation: smile 3s infinite;
+    }
+    .language-selection {
+        display: flex;
+        justify-content: center;
+        padding: 10px;
+        background-color: #f0f8ff;
+    }
+    .lang-button {
+        margin: 0 5px;
+        padding: 5px 10px;
+        background-color: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .lang-button:hover {
+        background-color: #004999;
+    }
+</style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <svg class="robot-logo" width="30" height="30" viewBox="0 0 100 100">
+            <circle class="robot-head" cx="50" cy="50" r="35" fill="#0066cc" />
+            <circle class="robot-eye left" cx="35" cy="40" r="5" fill="white" />
+            <circle class="robot-eye right" cx="65" cy="40" r="5" fill="white" />
+            <path class="robot-smile" d="M 30 60 Q 50 70 70 60" fill="none" stroke="white" stroke-width="3" />
+            <circle class="robot-antenna" cx="50" cy="15" r="5" fill="#0066cc" />
+            <rect class="robot-antenna-base" x="47" y="15" width="6" height="10" fill="#0066cc" />
+        </svg>
+        Lucy - ShoppyAI Assistant
+    </div>
+    <div id="language-selection" class="language-selection">
+        <button class="lang-button" data-lang="en">English</button>
+        <button class="lang-button" data-lang="sv">Svenska</button>
+        <button class="lang-button" data-lang="no">Norsk</button>
+        <button class="lang-button" data-lang="fr">Français</button>
+        <button class="lang-button" data-lang="de">Deutsch</button>
+    </div>
+    <div id="chat-messages" class="chat-messages"></div>
+    <a href="https://wa.me/44521256325" target="_blank" class="whatsapp-button">Chat with a Real Person on WhatsApp</a>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chat-messages');
+const languageSelection = document.getElementById('language-selection');
+
+let currentLanguage = 'en';
+
+const translations = {
+    en: {
+        welcome: "Welcome to ShoppyAI, where AI-powered dropshipping revolutionizes your business! Choose an option below to learn more about our automated solutions.",
+        lucyTyping: "Lucy is Typing",
+        whatsappMessage: "You've chosen to chat with a real person on WhatsApp. Click the button again to open WhatsApp.",
+        options: [
+            "Why automate dropshipping?",
+            "AI-powered store setup",
+            "No inventory hassle",
+            "Global market reach",
+            "Expert support team",
+            "How to start?" // New option
+        ],
+        botResponses: {
+            "Why automate dropshipping?": "Automating dropshipping with ShoppyAI saves you time and effort. Our AI assistant handles product selection, inventory management, and order fulfillment, allowing you to focus on growing your business.",
+            "AI-powered store setup": "Setting up your store with ShoppyAI is effortless. Our AI guides you through the process, helping you choose the right products and optimizing your store layout for maximum conversions.",
+            "No inventory hassle": "With ShoppyAI, you don't need to worry about inventory. Our AI manages stock levels and coordinates with suppliers, ensuring you never oversell or run out of popular items.",
+            "Global market reach": "ShoppyAI opens up global markets for your business. Our AI helps you target customers worldwide, handling currency conversions and international shipping logistics.",
+            "Expert support team": "Our expert support team works alongside our AI to provide personalized assistance and guidance as you grow your dropshipping business.",
+            "How to start?": "To start with our Starter Package, please leave your contact details, and we'll call you to assist in opening your first store. The Starter Package includes: Free 10 products, Shipping on us for all your sales for 6 months, Advertisement for your products. Minimum deposit of $100 required."
+        }
+    },
+    sv: {
+        welcome: "Välkommen till ShoppyAI, där AI-driven dropshipping revolutionerar din verksamhet! Välj ett alternativ nedan för att lära dig mer om våra automatiserade lösningar.",
+        lucyTyping: "Lucy skriver",
+        whatsappMessage: "Du har valt att chatta med en riktig person på WhatsApp. Klicka på knappen igen för att öppna WhatsApp.",
+        options: [
+            "Varför automatisera dropshipping?",
+            "AI-driven butiksuppsättning",
+            "Inget krångel med lager",
+            "Global marknadsräckvidd",
+            "Expert supportteam",
+            "Hur kommer jag igång?" // New option
+        ],
+        botResponses: {
+            "Varför automatisera dropshipping?": "Att automatisera dropshipping med ShoppyAI sparar dig tid och ansträngning. Vår AI-assistent hanterar produktval, lagerhantering och orderuppfyllelse, så att du kan fokusera på att växa din verksamhet.",
+            "AI-driven butiksuppsättning": "Att sätta upp din butik med ShoppyAI är enkelt. Vår AI guidar dig genom processen, hjälper dig att välja rätt produkter och optimerar din butikslayout för maximal konvertering.",
+            "Inget krångel med lager": "Med ShoppyAI behöver du inte oroa dig för lager. Vår AI hanterar lagernivåer och koordinerar med leverantörer, vilket säkerställer att du aldrig översäljer eller får slut på populära varor.",
+            "Global marknadsräckvidd": "ShoppyAI öppnar upp globala marknader för din verksamhet. Vår AI hjälper dig att nå kunder världen över, hanterar valutaomvandlingar och internationell frakt logistik.",
+            "Expert supportteam": "Vårt expertsupportteam arbetar tillsammans med vår AI för att ge personlig assistans och vägledning när du växer din dropshipping-verksamhet.",
+            "Hur kommer jag igång?": "För att starta med vårt Startpaket, vänligen lämna dina kontaktuppgifter så ringer vi dig för att hjälpa till med att öppna din första butik. Startpaketet inkluderar: Gratis 10 produkter, Frakt på oss för alla dina försäljningar i 6 månader, Reklam för dina produkter. Minsta insättning på 100 $ krävs."
+        }
+    },
+    no: {
+        welcome: "Velkommen til ShoppyAI, hvor AI-drevet dropshipping revolusjonerer din virksomhet! Velg et alternativ nedenfor for å lære mer om våre automatiserte løsninger.",
+        lucyTyping: "Lucy skriver",
+        whatsappMessage: "Du har valgt å chatte med en ekte person på WhatsApp. Klikk på knappen igjen for å åpne WhatsApp.",
+        options: [
+            "Hvorfor automatisere dropshipping?",
+            "AI-drevet butikkoppsett",
+            "Ingen lagerstress",
+            "Global markedsrekkevidde",
+            "Ekspert supportteam",
+            "Hvordan komme i gang?" // New option
+        ],
+        botResponses: {
+            "Hvorfor automatisere dropshipping?": "Automatisering av dropshipping med ShoppyAI sparer deg for tid og innsats. Vår AI-assistent håndterer produktvalg, lagerstyring og ordreoppfyllelse, slik at du kan fokusere på å vokse virksomheten din.",
+            "AI-drevet butikkoppsett": "Å sette opp butikken din med ShoppyAI er enkelt. Vår AI guider deg gjennom prosessen, hjelper deg med å velge de riktige produktene og optimaliserer butikkens layout for maksimal konvertering.",
+            "Ingen lagerstress": "Med ShoppyAI trenger du ikke bekymre deg for lager. Vår AI håndterer lagernivåer og koordinerer med leverandører, og sikrer at du aldri overseller eller går tom for populære varer.",
+            "Global markedsrekkevidde": "ShoppyAI åpner globale markeder for din virksomhet. Vår AI hjelper deg med å nå kunder over hele verden, håndterer valutaomregninger og internasjonal frakt logistikk.",
+            "Ekspert supportteam": "Vårt ekspertsupportteam jobber sammen med vår AI for å gi personlig assistanse og veiledning når du vokser din dropshipping-virksomhet.",
+            "Hvordan komme i gang?": "For å starte med vår Startpakke, vennligst legg igjen kontaktinformasjonen din, så ringer vi deg for å hjelpe deg med å åpne din første butikk. Startpakken inkluderer: Gratis 10 produkter, Frakt på oss for alle dine salg i 6 måneder, Reklame for produktene dine. Minimum innskudd på $100 kreves."
+        }
+    },
+    fr: {
+        welcome: "Bienvenue chez ShoppyAI, où le dropshipping propulsé par l'IA révolutionne votre entreprise ! Choisissez une option ci-dessous pour en savoir plus sur nos solutions automatisées.",
+        lucyTyping: "Lucy écrit",
+        whatsappMessage: "Vous avez choisi de discuter avec une vraie personne sur WhatsApp. Cliquez à nouveau sur le button pour ouvrir WhatsApp.",
+        options: [
+            "Pourquoi automatiser le dropshipping ?",
+            "Configuration de boutique par IA",
+            "Aucun tracas d'inventaire",
+            "Portée du marché mondial",
+            "Équipe de support expert",
+            "Comment commencer ?" // New option
+        ],
+        botResponses: {
+            "Pourquoi automatiser le dropshipping ?": "L'automatisation du dropshipping avec ShoppyAI vous fait gagner du temps et des efforts. Notre assistant IA gère la sélection des produits, la gestion des stocks et l'exécution des commandes, vous permettant de vous concentrer sur la croissance de votre entreprise.",
+            "Configuration de boutique par IA": "La configuration de votre boutique avec ShoppyAI est sans effort. Notre IA vous guide tout au long du processus, vous aidant à choisir les bons produits et à optimiser la mise en page de votre boutique pour un maximum de conversions.",
+            "Aucun tracas d'inventaire": "Avec ShoppyAI, vous n'avez pas à vous soucier de l'inventaire. Notre IA gère les niveaux de stock et coordonne avec les fournisseurs, vous assurant de ne jamais surpasser ou manquer d'articles populaires.",
+            "Portée du marché mondial": "ShoppyAI ouvre des marchés mondiaux pour votre entreprise. Notre IA vous aide à cibler des clients dans le monde entier, gérant les conversions de devises et la logistique d'expédition internationale.",
+            "Équipe de support expert": "Notre équipe de support expert travaille aux côtés de notre IA pour fournir une assistance personnalisée et des conseils pendant que vous développez votre entreprise de dropshipping.",
+            "Comment commencer ?": "Pour commencer avec notre Pack de Démarrage, veuillez laisser vos coordonnées et nous vous appellerons pour vous aider à ouvrir votre première boutique. Le Pack de Démarrage comprend : 10 produits gratuits, Frais de port offerts pour toutes vos ventes pendant 6 mois, Publicité pour vos produits. Dépôt minimum de 100 $ requis."
+        }
+    },
+    de: {
+        welcome: "Willkommen bei ShoppyAI, wo KI-gesteuertes Dropshipping Ihr Geschäft revolutioniert! Wählen Sie unten eine Option, um mehr über unsere automatisierten Lösungen zu erfahren.",
+        lucyTyping: "Lucy schreibt",
+        whatsappMessage: "Sie haben gewählt, mit einer echten Person auf WhatsApp zu chatten. Klicken Sie erneut auf die Schaltfläche, um WhatsApp zu öffnen.",
+        options: [
+            "Warum Dropshipping automatisieren?",
+            "KI-gesteuerte Shop-Einrichtung",
+            "Keine Lagerprobleme",
+            "Globale Marktreichweite",
+            "Experten-Supportteam",
+            "Wie fange ich an?" // New option
+        ],
+        botResponses: {
+            "Warum Dropshipping automatisieren?": "Die Automatisierung von Dropshipping mit ShoppyAI spart Ihnen Zeit und Mühe. Unser KI-Assistent übernimmt die Produktauswahl, Bestandsverwaltung und Auftragsabwicklung, sodass Sie sich auf das Wachstum Ihres Unternehmens konzentrieren können.",
+            "KI-gesteuerte Shop-Einrichtung": "Die Einrichtung Ihres Shops mit ShoppyAI ist mühelos. Unsere KI führt Sie durch den Prozess, hilft Ihnen bei der Auswahl der richtigen Produkte und optimiert Ihr Shop-Layout für maximale Konversionen.",
+            "Keine Lagerprobleme": "Mit ShoppyAI müssen Sie sich keine Sorgen um den Bestand machen. Unsere KI verwaltet die Lagerbestände und koordiniert mit Lieferanten, um sicherzustellen, dass Sie nie übermäßig verkaufen oder beliebte Artikel ausgehen.",
+            "Globale Marktreichweite": "ShoppyAI eröffnet globale Märkte für Ihr Unternehmen. Unsere KI hilft Ihnen, Kunden weltweit anzusprechen, und übernimmt Währungsumrechnungen und internationale Versandlogistik.",
+            "Experten-Supportteam": "Unser Experten-Supportteam arbeitet Hand in Hand mit unserer KI, um Ihnen personalisierte Unterstützung und Anleitung zu geben, während Sie Ihr Dropshipping-Geschäft ausbauen.",
+            "Wie fange ich an?": "Um mit unserem Starter-Paket zu beginnen, hinterlassen Sie bitte Ihre Kontaktdaten, und wir rufen Sie an, um Ihnen bei der Eröffnung Ihres ersten Shops zu helfen. Das Starter-Paket beinhaltet: 10 kostenlose Produkte, Versand auf uns für alle Ihre Verkäufe für 6 Monate, Werbung für Ihre Produkte. Mindesteinzahlung von 100 $ erforderlich."
+        }
+    }
+};
+
+function displayMessage(message, isBot = true) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.classList.add(isBot ? 'bot-message' : 'user-message');
+    messageElement.textContent = message;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function displayOptions(options) {
+    const optionsContainer = document.createElement('div');
+    optionsContainer.classList.add('options-container');
+    options.forEach(option => {
+        const button = document.createElement('button');
+        button.classList.add('option-button');
+        button.textContent = option;
+        button.addEventListener('click', () => handleOptionClick(option));
+        optionsContainer.appendChild(button);
+    });
+    chatMessages.appendChild(optionsContainer);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function handleOptionClick(option) {
+    displayMessage(option, false);
+    showTypingIndicator();
+    setTimeout(() => {
+        hideTypingIndicator();
+        const response = translations[currentLanguage].botResponses[option];
+        displayMessage(response);
+        displayOptions(translations[currentLanguage].options);
+    }, 1500);
+}
+
+function showTypingIndicator() {
+    const typingIndicator = document.createElement('div');
+    typingIndicator.id = 'typing-indicator';
+    typingIndicator.classList.add('message', 'bot-message');
+    typingIndicator.innerHTML = `${translations[currentLanguage].lucyTyping}<span class="loading-dots"></span>`;
+    chatMessages.appendChild(typingIndicator);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+function changeLanguage(lang) {
+    currentLanguage = lang;
+    chatMessages.innerHTML = '';
+    displayMessage(translations[lang].welcome);
+    displayOptions(translations[lang].options);
+}
+
+languageSelection.addEventListener('click', (event) => {
+    if (event.target.classList.contains('lang-button')) {
+        changeLanguage(event.target.dataset.lang);
+    }
+});
+
+// Initialize chat with English
+changeLanguage('en');
+</script>
+</body>
+</html>
